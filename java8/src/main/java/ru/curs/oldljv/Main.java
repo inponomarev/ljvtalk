@@ -1,6 +1,8 @@
 package ru.curs.oldljv;
 
+import org.atpfivt.ljv.Direction;
 import org.atpfivt.ljv.LJV;
+import org.atpfivt.ljv.provider.impl.NewObjectHighlighter;
 import org.reflections.ReflectionUtils;
 
 import java.awt.*;
@@ -9,35 +11,126 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.*;
 import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class Main {
 
     private static void visualize(LJV ljv, Object o) throws IOException, URISyntaxException {
-        String dot = URLEncoder.encode(ljv.drawGraph(o), "UTF8")
-                .replaceAll("\\+", "%20");
+        String dot = ljv.drawGraph(o);
 
+        String encoded = URLEncoder.encode(dot, "UTF8")
+                .replaceAll("\\+", "%20");
         Desktop.getDesktop().browse(
                 new URI("https://dreampuf.github.io/GraphvizOnline/#"
-                        + dot));
+                        + encoded));
     }
 
     public static void main(String[] args) throws IOException, URISyntaxException {
-         //   hm1();
+        //chm();
+        //cslm();
+        //tm();
+        //   hm1();
         //hm2(6);
-        // hm2(11);
-        // hm3(11);
-        lhm();
+        //hm2(11);
+        //hm3(11);
+        //lhm();
+        lhm2();
     }
+
+    private static void chm() throws IOException, URISyntaxException {
+        LJV ljv = new LJV()
+                .setIgnoreNullValuedFields(true)
+                .setTreatAsPrimitive(Integer.class)
+                .setTreatAsPrimitive(String.class);
+
+        Map<String, Integer> map = new ConcurrentHashMap<>(16, 0.75f, 8);
+        map.put("one", 1);
+        map.put("two", 2);
+        map.put("three", 3);
+        map.put("four", 4);
+        map.put("five", 5);
+        visualize(ljv, map);
+    }
+
+    private static void cslm() throws IOException, URISyntaxException {
+        LJV ljv = new LJV()
+                .setTreatAsPrimitive(Integer.class)
+                .setTreatAsPrimitive(String.class)
+                .setIgnoreNullValuedFields(true)
+                .setTreatAsPrimitive(LongAdder.class)
+                .addIgnoreField("val")
+                .addFieldAttribute("node", "constraint=false,color=green")
+                .addFieldAttribute("down", "constraint=false")
+                .addObjectAttributesProvider(new NewObjectHighlighter());
+
+        Map<String, Integer> map = new ConcurrentSkipListMap<>();
+
+        insertA2H(ljv, map);
+    }
+
+    private static void tm() throws IOException, URISyntaxException {
+        LJV ljv = new LJV()
+                .setTreatAsPrimitive(Integer.class)
+                .setTreatAsPrimitive(String.class)
+                .setIgnoreNullValuedFields(true)
+                .addIgnoreField("color")
+                .addIgnoreField("value")
+                .addObjectAttributesProvider(Main::redBlack)
+                .addObjectAttributesProvider(new NewObjectHighlighter());
+
+        Map<String, Integer> map = new TreeMap<>();
+        insertA2H(ljv, map);
+    }
+
+
+    private static void insertA2H(LJV ljv, Map map) throws IOException, URISyntaxException {
+        map.put("A", 1);
+        visualize(ljv, map);
+        map.put("B", 2);
+        visualize(ljv, map);
+        map.put("C", 3);
+        visualize(ljv, map);
+        map.put("D", 4);
+        visualize(ljv, map);
+        map.put("E", 3);
+        visualize(ljv, map);
+        map.put("F", 4);
+        visualize(ljv, map);
+        map.put("G", 7);
+        visualize(ljv, map);
+        map.put("H", 8);
+        visualize(ljv, map);
+    }
+
+    private static String redBlack(Object o) {
+        Set<Field> colorFields = ReflectionUtils.getAllFields(o.getClass(),
+                f -> "color".equals(f.getName())
+                        && f.getType().equals(boolean.class));
+        if (colorFields.isEmpty()) {
+            return "";
+        } else {
+            Field colorField = colorFields.iterator().next();
+            colorField.setAccessible(true);
+            try {
+                boolean b = colorField.getBoolean(o);
+                return b ? "color=black" : "color=red";
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+    }
+
 
 
     private static String redBlackForHM(Object o) {
         Set<Field> redFields = ReflectionUtils.getAllFields(o.getClass(),
-                f -> "red" .equals(f.getName())
+                f -> "red".equals(f.getName())
                         && f.getType().equals(boolean.class));
         if (redFields.isEmpty()) {
             return "";
@@ -100,14 +193,35 @@ public class Main {
                 .addFieldAttribute("after", "constraint=false,color=green")
                 .addFieldAttribute("before", "constraint=false,color=green")
                 .addFieldAttribute("head", "constraint=false,color=green")
-                .addFieldAttribute("tail", "constraint=false,color=green")
-                ;
+                .addFieldAttribute("tail", "constraint=false,color=green");
 
         Map<String, Integer> map = new LinkedHashMap<>();
         map.put("one", 1);
         map.put("two", 2);
         map.put("three", 3);
         map.put("four", 4);
+        visualize(ljv, map);
+    }
+
+    static void lhm2() throws IOException, URISyntaxException {
+        LJV ljv = new LJV()
+                .setDirection(Direction.LR)
+                .setIgnoreNullValuedFields(true)
+                .setTreatAsPrimitive(Integer.class)
+                .setTreatAsPrimitive(String.class)
+                .addFieldAttribute("after", "color=green")
+                .addFieldAttribute("before", "color=green,constraint=false")
+                .addFieldAttribute("head", "color=green,constraint=false")
+                .addFieldAttribute("tail", "color=green,constraint=false")
+                .addFieldAttribute("next", "constraint=false");
+
+        Map<String, Integer> map = new LinkedHashMap<>(5, 0.8f, true);
+        map.put("one", 1);
+        map.put("two", 2);
+        map.put("three", 3);
+        map.put("four", 4);
+        visualize(ljv, map);
+        map.get("two");
         visualize(ljv, map);
     }
 

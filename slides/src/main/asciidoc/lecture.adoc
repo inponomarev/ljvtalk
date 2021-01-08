@@ -40,41 +40,108 @@ include::_doc_general_attributes.adoc[]
 * Преподаю Java в МФТИ
 |===
 
+== Что значит «сделать лекционный курс»?
 
-== Что такое сделать лекционный курс по Java?
-
-* Каждую неделю надо готовить доклад на 1.5 часа
+* 14 недель подряд каждую неделю готовить доклад на 1.5 часа
 * На доске рисовать неохота
+* Хочется делать https://habr.com/ru/post/456032/[слайды как код]
 * *Можно ли, чтобы слайды рисовали себя сами?*
 
 == Слайды как код
 
-== GraphViz
+https://habr.com/ru/post/456032/
+
+image::presentationascode.png[]
+
+
+== GraphViz (Graph Visualization Software)
+
+* Initial release: before 1991
+* Stable release: 2.42.1, July 2019
+* DOT language & visualization software
+
+[cols="50a,50a"]
+|===
+>.^|
+[source]
+--
+digraph G{
+  A->B->C;
+  B->D->A;
+  C->A;
+}
+--
+<.^|
+[graphviz]
+--
+digraph G{
+  graph [ dpi = 180 ];
+  A->B->C;
+  B->D->A;
+  C->A;
+}
+--
+|===
+
 
 == Lightweight Java Visualizer
 
+* Java Reflection API + GraphViz.
+* *John Hamer* https://www.cs.auckland.ac.nz/~j-hamer/ACE04-paper.pdf[“Visualising Java Data Structures as Graphs”] (ACE 2004)
+* https://www.cs.auckland.ac.nz/~j-hamer/LJV.html
+* GNU GPL, файл `LJV.java`.
 
-== Удовлетворяем любопытство
+== Lightweight Java Visualizer: второе рождение
+
+* Нурас Ногаев, Илья Селиванов (МФТИ)
+* Улучшен API
+* Обновлён GraphViz
+* GitHub, Maven, CI, тесты
+
+== Шаг 1: создаём и конфигурируем LJV
 
 [source,java]
 --
 LJV ljv = new LJV()
     .setQualifyNestedClassNames(true)
     .setIgnoreNullValuedFields(true);
+--
+
+== Шаг 2: создаём изучаемый объект
+
+[source,java]
+--
 Stream<Integer> stream = 
     List.of(1, 2, 3)
     .stream()
     .map(x -> x * x)
     .filter(x -> x % 2 == 0);
-visualize(ljv, stream);
 --
 
-== Удовлетворяем любопытство
+== Шаг 3: визуализируем
+[source,java]
+--
+//DOT script
+String dot = ljv.drawGraph(o);
+
+//use GraphViz online
+String encoded = URLEncoder.encode(dot, "UTF8")
+                .replaceAll("\\+", "%20");
+Desktop.getDesktop().browse(
+    new URI("https://dreampuf.github.io/GraphvizOnline/#"
+                        + encoded));
+
+--
+
+
+[%notitle]
+== Шаг 4: смотрим, что получилось
 
 [graphviz]
 --
 digraph Java {
 	rankdir="TB";
+	graph [ dpi = 72 ];
 	node[shape=plaintext]
 	n1[label=<
 		<table border='0' cellborder='1' cellspacing='0'>
@@ -247,6 +314,13 @@ digraph Java {
 }
 
 --
+
+== Наш план
+
+* *Строки и обёртки примитивов*
+* Очереди
+* `Map` и `ConcurrentMap`
+* `NavigableMap` и `ConcurrentNavigableMap`
 
 == Эволюция String
 
@@ -659,19 +733,25 @@ digraph Java {
 
 == Интернирование строк
 
-[source,java]
-             x,
-             new String(x).intern(),
-             new String(x.toCharArray()).intern(),
-             (x + "").intern(),
-             ("" + x).intern(),
-             x.concat("").intern(),
-             "".concat(x).intern()
+[cols="50a,50a"]
+|===
+|
 
+[source,java]
+x,
+new String(x).intern(),
+new String(x.toCharArray()).intern(),
+(x + "").intern(),
+("" + x).intern(),
+x.concat("").intern(),
+"".concat(x).intern()
+
+|
 [graphviz]
 --
 digraph Java {
 	rankdir="TB";
+	graph [ dpi = 150 ];
 	node[shape=plaintext]
 	n1[label=<
 		<table border='0' cellborder='1' cellspacing='0' cellpadding='9'>
@@ -714,6 +794,8 @@ digraph Java {
 	n1:f6 -> n2[label="6",fontsize=12];
 }
 --
+|===
+
 
 == Что посмотреть по теме
 
@@ -723,7 +805,7 @@ digraph Java {
 * Тагир Валеев
 ** https://jugspeakers.online/ru/talk/2254.html[Ещё немного маленьких оптимизаций (JPoint 2020, 29.06.2020)]
 * Сергей Цыпанов
-** https://jugspeakers.online/ru/event/55.html[Ах, эти строки (JPoint 2020, 29.06.2020)]
+** https://jugspeakers.online/ru/talk/2239.html[Ах, эти строки (JPoint 2020, 29.06.2020)]
 
 
 == Кэширование boxed primitives
@@ -813,6 +895,22 @@ digraph Java {
 	n1:f5 -> n5[label="5",fontsize=12];
 }
 --
+
+== Промежуточные выводы
+
+* Обновляйте Java, строки всё лучше и лучше!
+* Помните о кэшировании boxed primitives
+* При наличии показаний со стороны перформанс-анализа:
+** Дедупликация и иные методы уменьшения количества строк
+** `-XX:AutoBoxCacheMax`
+** https://github.com/vigna/fastutil[fastutil] (или ждём Valhalla)
+
+== Наш план
+
+* [line-through]#Строки и обёртки примитивов#
+* *Очереди*
+* `Map` и `ConcurrentMap`
+* `NavigableMap` и `ConcurrentNavigableMap`
 
 == LinkedList
 
@@ -1131,10 +1229,11 @@ digraph Java {
 
 == PriorityQueue: в чём фокус?
 
-* Binary min-heap:
+* Binary min-heap, инварианты:
 ** stem:[q[n\] \leq q[2n + 1\]]
 ** stem:[q[n\] \leq q[2n+2\]]
-** как следствие, stem:[q[0\] = \min(q)]
+* Следствие:
+** stem:[q[0\] = \min(q)]
 
 [graphviz]
 --
@@ -1378,6 +1477,19 @@ digraph Java {
 
 --
 
+== Промежуточные выводы
+
+* `java.util.LinkedList` не нужен, array based классы лучше.
+* Массивы -- сила.
+
+== Наш план
+
+* [line-through]#Строки и обёртки примитивов#
+* [line-through]#Очереди#
+* *`Map` и `ConcurrentMap`*
+* `NavigableMap` и `ConcurrentNavigableMap`
+
+
 == Его Величество `HashMap`
 
 [source,java]
@@ -1392,6 +1504,8 @@ map.put("one", 1);   map.put("two", 2);
 map.put("three", 3); map.put("four", 4);
 visualize(ljv, map);
 --
+
+== Его Величество `HashMap`
 
 [graphviz]
 --
@@ -1516,14 +1630,15 @@ digraph Java {
 [source,java]
 --
 LJV ljv = new LJV()
-                .setIgnoreNullValuedFields(true)
-                .setTreatAsPrimitive(Integer.class)
-                .setTreatAsPrimitive(String.class)
-                .addIgnoreField("value")
-                .addFieldAttribute("prev", "constraint=false,color=green")
-                .addFieldAttribute("next", "constraint=false,color=green");
+    .setIgnoreNullValuedFields(true)
+    .setTreatAsPrimitive(Integer.class)
+    .setTreatAsPrimitive(String.class)
+    .addIgnoreField("value")
+    .addFieldAttribute("prev", "constraint=false,color=green")
+    .addFieldAttribute("next", "constraint=false,color=green");
 
-List<String> collisions = new HashCodeCollision().genCollisionString(7);
+List<String> collisions = 
+    new HashCodeCollision().genCollisionString(7);
 Map<String, Integer> map = new HashMap<>();
 
 for (int i = 0; i < len; i++) {
@@ -1671,6 +1786,7 @@ digraph Java {
 
 --
 
+[%notitle]
 == 11 коллизий: одеревенение мапы
 
 [graphviz]
@@ -2403,6 +2519,265 @@ digraph Java {
 }
 --
 
+== LinkedHashMap: режим access order
+
+[source,java]
+--
+Map<String, Integer> map = new LinkedHashMap<>(5, 0.8f,
+                    /*accessOrder:*/ true);
+map.put("one", 1);   map.put("two", 2);
+map.put("three", 3); map.put("four", 4);
+--
+
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='6'>LinkedHashMap</td>
+			</tr>
+			<tr>
+				<td>threshold: 6</td>
+			</tr>
+			<tr>
+				<td>accessOrder: true</td>
+			</tr>
+			<tr>
+				<td>modCount: 4</td>
+			</tr>
+			<tr>
+				<td>size: 4</td>
+			</tr>
+			<tr>
+				<td>loadFactor: 0.8</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Entry</td>
+			</tr>
+			<tr>
+				<td>hash: 110183</td>
+			</tr>
+			<tr>
+				<td>key: one</td>
+			</tr>
+			<tr>
+				<td>value: 1</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Entry</td>
+			</tr>
+			<tr>
+				<td>hash: 115277</td>
+			</tr>
+			<tr>
+				<td>key: two</td>
+			</tr>
+			<tr>
+				<td>value: 2</td>
+			</tr>
+		</table>
+	>];
+	n3 -> n2[label="before",fontsize=12,color=green,constraint=false];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Entry</td>
+			</tr>
+			<tr>
+				<td>hash: 110338829</td>
+			</tr>
+			<tr>
+				<td>key: three</td>
+			</tr>
+			<tr>
+				<td>value: 3</td>
+			</tr>
+		</table>
+	>];
+	n4 -> n3[label="before",fontsize=12,color=green,constraint=false];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Entry</td>
+			</tr>
+			<tr>
+				<td>hash: 3149078</td>
+			</tr>
+			<tr>
+				<td>key: four</td>
+			</tr>
+			<tr>
+				<td>value: 4</td>
+			</tr>
+		</table>
+	>];
+	n5 -> n4[label="before",fontsize=12,color=green,constraint=false];
+	n4 -> n5[label="after",fontsize=12,color=green];
+	n3 -> n4[label="after",fontsize=12,color=green];
+	n3 -> n4[label="next",fontsize=12,constraint=false];
+	n2 -> n3[label="after",fontsize=12,color=green];
+	n1 -> n2[label="head",fontsize=12,color=green,constraint=false];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0' cellpadding='9'>
+			<tr>
+				<td port="f0"></td>
+				<td port="f1"></td>
+				<td port="f2"></td>
+				<td port="f3"></td>
+				<td port="f4"></td>
+				<td port="f5"></td>
+				<td port="f6"></td>
+				<td port="f7"></td>
+			</tr>
+		</table>
+	>];
+	n6:f5 -> n3[label="5",fontsize=12];
+	n6:f6 -> n5[label="6",fontsize=12];
+	n6:f7 -> n2[label="7",fontsize=12];
+	n1 -> n6[label="table",fontsize=12];
+	n1 -> n5[label="tail",fontsize=12,color=green,constraint=false];
+}
+--
+
+== LinkedHashMap: режим access order
+
+[source,java]
+--
+map.get("two");
+--
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='6'>LinkedHashMap</td>
+			</tr>
+			<tr>
+				<td>threshold: 6</td>
+			</tr>
+			<tr>
+				<td>accessOrder: true</td>
+			</tr>
+			<tr>
+				<td>modCount: 5</td>
+			</tr>
+			<tr>
+				<td>size: 4</td>
+			</tr>
+			<tr>
+				<td>loadFactor: 0.8</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Entry</td>
+			</tr>
+			<tr>
+				<td>hash: 110183</td>
+			</tr>
+			<tr>
+				<td>key: one</td>
+			</tr>
+			<tr>
+				<td>value: 1</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Entry</td>
+			</tr>
+			<tr>
+				<td>hash: 110338829</td>
+			</tr>
+			<tr>
+				<td>key: three</td>
+			</tr>
+			<tr>
+				<td>value: 3</td>
+			</tr>
+		</table>
+	>];
+	n3 -> n2[label="before",fontsize=12,color=green,constraint=false];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Entry</td>
+			</tr>
+			<tr>
+				<td>hash: 3149078</td>
+			</tr>
+			<tr>
+				<td>key: four</td>
+			</tr>
+			<tr>
+				<td>value: 4</td>
+			</tr>
+		</table>
+	>];
+	n4 -> n3[label="before",fontsize=12,color=green,constraint=false];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Entry</td>
+			</tr>
+			<tr>
+				<td>hash: 115277</td>
+			</tr>
+			<tr>
+				<td>key: two</td>
+			</tr>
+			<tr>
+				<td>value: 2</td>
+			</tr>
+		</table>
+	>];
+	n5 -> n4[label="before",fontsize=12,color=green,constraint=false];
+	n5 -> n3[label="next",fontsize=12,constraint=false];
+	n4 -> n5[label="after",fontsize=12,color=green];
+	n3 -> n4[label="after",fontsize=12,color=green];
+	n2 -> n3[label="after",fontsize=12,color=green];
+	n1 -> n2[label="head",fontsize=12,color=green,constraint=false];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0' cellpadding='9'>
+			<tr>
+				<td port="f0"></td>
+				<td port="f1"></td>
+				<td port="f2"></td>
+				<td port="f3"></td>
+				<td port="f4"></td>
+				<td port="f5"></td>
+				<td port="f6"></td>
+				<td port="f7"></td>
+			</tr>
+		</table>
+	>];
+	n6:f5 -> n5[label="5",fontsize=12];
+	n6:f6 -> n4[label="6",fontsize=12];
+	n6:f7 -> n2[label="7",fontsize=12];
+	n1 -> n6[label="table",fontsize=12];
+	n1 -> n5[label="tail",fontsize=12,color=green,constraint=false];
+}
+--
 
 == MapN: иммутабельная хэшмапа
 
@@ -2688,3 +3063,2039 @@ digraph Java {
 	n1 -> n2[label="table",fontsize=12];
 }
 --
+
+
+== ConcurrentHashMap
+
+[source,java]
+--
+Map<String, Integer> map =
+                new ConcurrentHashMap<String, Integer>(
+                        /*initialCapacity:*/16 ,
+                        /*loadFactor:*/0.75f,
+                        /*concurrencyLevel:*/8);
+
+map.put("one", 1);
+map.put("two", 2);
+map.put("three", 3);
+map.put("four", 4);
+map.put("five", 5);
+visualize(map);
+--
+
+
+== ConcurrentHashMap: Java 7-
+
+[graphviz]
+--
+digraph Java {
+n382319160[label="ConcurrentHashMap|{segmentMask: 7|segmentShift: 29|keySet: null|entrySet: null|values: null}",shape=record];
+n382319160 -> n521751118[label="segments",fontsize=12];
+n521751118[label="<f0>|<f1>|<f2>|<f3>|<f4>|<f5>|<f6>|<f7>",shape=record];
+n521751118:f0 -> n564898696[label="0",fontsize=12];
+n564898696[label="Segment|{count: 0|modCount: 0|threshold: 1|loadFactor: 0.75}",shape=record];
+n564898696 -> n1981440623[label="table",fontsize=12];
+n1981440623[shape=record, label="null|null"];
+n521751118:f1 -> n1043636732[label="1",fontsize=12];
+n1043636732[label="Segment|{count: 2|modCount: 2|threshold: 1|loadFactor: 0.75}",shape=record];
+n1043636732 -> n1903609675[label="table",fontsize=12];
+n1903609675[label="<f0>|<f1>",shape=record];
+n1903609675:f0 -> n295131993[label="0",fontsize=12];
+n295131993[label="HashEntry|{key: five|hash: 553292222|value: 5|next: null}",shape=record];
+n1903609675:f1 -> n1743665428[label="1",fontsize=12];
+n1743665428[label="HashEntry|{key: three|hash: 1047845927|value: 3|next: null}",shape=record];
+n521751118:f2 -> n1419115801[label="2",fontsize=12];
+n1419115801[label="Segment|{count: 0|modCount: 0|threshold: 1|loadFactor: 0.75}",shape=record];
+n1419115801 -> n1125883825[label="table",fontsize=12];
+n1125883825[shape=record, label="null|null"];
+n521751118:f3 -> n1251033058[label="3",fontsize=12];
+n1251033058[label="Segment|{count: 2|modCount: 2|threshold: 1|loadFactor: 0.75}",shape=record];
+n1251033058 -> n100218029[label="table",fontsize=12];
+n100218029[label="<f0>|<f1>",shape=record];
+n100218029:f0 -> n737234155[label="0",fontsize=12];
+n737234155[label="HashEntry|{key: one|hash: 1919294914|value: 1|next: null}",shape=record];
+n100218029:f1 -> n1861283542[label="1",fontsize=12];
+n1861283542[label="HashEntry|{key: four|hash: 1850787001|value: 4|next: null}",shape=record];
+n521751118:f4 -> n476651318[label="4",fontsize=12];
+n476651318[label="Segment|{count: 0|modCount: 0|threshold: 1|loadFactor: 0.75}",shape=record];
+n476651318 -> n183062162[label="table",fontsize=12];
+n183062162[shape=record, label="null|null"];
+n521751118:f5 -> n1529174230[label="5",fontsize=12];
+n1529174230[label="Segment|{count: 1|modCount: 1|threshold: 1|loadFactor: 0.75}",shape=record];
+n1529174230 -> n1894479961[label="table",fontsize=12];
+n1894479961[label="<f0>|<f1>",shape=record];
+n1894479961:f0 -> n1932154105[label="0",fontsize=12];
+n1932154105[label="HashEntry|{key: two|hash: -1406597098|value: 2|next: null}",shape=record];
+n521751118:f6 -> n1613816448[label="6",fontsize=12];
+n1613816448[label="Segment|{count: 0|modCount: 0|threshold: 1|loadFactor: 0.75}",shape=record];
+n1613816448 -> n694579926[label="table",fontsize=12];
+n694579926[shape=record, label="null|null"];
+n521751118:f7 -> n332181545[label="7",fontsize=12];
+n332181545[label="Segment|{count: 0|modCount: 0|threshold: 1|loadFactor: 0.75}",shape=record];
+n332181545 -> n1665228262[label="table",fontsize=12];
+n1665228262[shape=record, label="null|null"];
+}
+--
+
+== ConcurrentHashMap: Java 8+
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='5'>ConcurrentHashMap</td>
+			</tr>
+			<tr>
+				<td>sizeCtl: 24</td>
+			</tr>
+			<tr>
+				<td>cellsBusy: 0</td>
+			</tr>
+			<tr>
+				<td>transferIndex: 0</td>
+			</tr>
+			<tr>
+				<td>baseCount: 5</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0' cellpadding='9'>
+			<tr>
+				<td port="f0"></td>
+				<td port="f1"></td>
+				<td port="f2"></td>
+				<td port="f3"></td>
+				<td port="f4"></td>
+				<td port="f5"></td>
+				<td port="f6"></td>
+				<td port="f7"></td>
+				<td port="f8"></td>
+				<td port="f9"></td>
+				<td port="f10"></td>
+				<td port="f11"></td>
+				<td port="f12"></td>
+				<td port="f13"></td>
+				<td port="f14"></td>
+				<td port="f15"></td>
+				<td port="f16"></td>
+				<td port="f17"></td>
+				<td port="f18"></td>
+				<td port="f19"></td>
+				<td port="f20"></td>
+				<td port="f21"></td>
+				<td port="f22"></td>
+				<td port="f23"></td>
+				<td port="f24"></td>
+				<td port="f25"></td>
+				<td port="f26"></td>
+				<td port="f27"></td>
+				<td port="f28"></td>
+				<td port="f29"></td>
+				<td port="f30"></td>
+				<td port="f31"></td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Node</td>
+			</tr>
+			<tr>
+				<td>val: 1</td>
+			</tr>
+			<tr>
+				<td>hash: 110183</td>
+			</tr>
+			<tr>
+				<td>key: one</td>
+			</tr>
+		</table>
+	>];
+	n2:f7 -> n3[label="7",fontsize=12];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Node</td>
+			</tr>
+			<tr>
+				<td>val: 2</td>
+			</tr>
+			<tr>
+				<td>hash: 115277</td>
+			</tr>
+			<tr>
+				<td>key: two</td>
+			</tr>
+		</table>
+	>];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Node</td>
+			</tr>
+			<tr>
+				<td>val: 3</td>
+			</tr>
+			<tr>
+				<td>hash: 110338829</td>
+			</tr>
+			<tr>
+				<td>key: three</td>
+			</tr>
+		</table>
+	>];
+	n4 -> n5[label="next",fontsize=12];
+	n2:f13 -> n4[label="13",fontsize=12];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Node</td>
+			</tr>
+			<tr>
+				<td>val: 4</td>
+			</tr>
+			<tr>
+				<td>hash: 3149078</td>
+			</tr>
+			<tr>
+				<td>key: four</td>
+			</tr>
+		</table>
+	>];
+	n2:f22 -> n6[label="22",fontsize=12];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='4'>Node</td>
+			</tr>
+			<tr>
+				<td>val: 5</td>
+			</tr>
+			<tr>
+				<td>hash: 3143325</td>
+			</tr>
+			<tr>
+				<td>key: five</td>
+			</tr>
+		</table>
+	>];
+	n2:f29 -> n7[label="29",fontsize=12];
+	n1 -> n2[label="table",fontsize=12];
+}
+--
+
+
+== Наш план
+
+* [line-through]#Строки и обёртки примитивов#
+* [line-through]#Очереди#
+* [line-through]#`Map` и `ConcurrentMap`#
+* *`NavigableMap` и `ConcurrentNavigableMap`*
+
+== TreeMap: красно-чёрное дерево
+
+[source,java]
+--
+LJV ljv = new LJV()
+    .setTreatAsPrimitive(Integer.class)
+    .setTreatAsPrimitive(String.class)
+    .setIgnoreNullValuedFields(true)
+    .addIgnoreField("color")
+    .addObjectAttributesProvider(Main::redBlack); //color ? black : red
+
+Map<String, Integer> map = new TreeMap<>();
+map.put("one", 1);        map.put("two", 2);
+map.put("three", 3);      map.put("four", 4);
+map.put("five", 3);       map.put("six", 4);
+visualize(ljv, map);
+--
+
+== TreeMap: красно-чёрное дерево
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>TreeMap</td>
+			</tr>
+			<tr>
+				<td>size: 6</td>
+			</tr>
+			<tr>
+				<td>modCount: 6</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: three</td>
+			</tr>
+			<tr>
+				<td>value: 3</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: four</td>
+			</tr>
+			<tr>
+				<td>value: 4</td>
+			</tr>
+		</table>
+	>,color=red];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: five</td>
+			</tr>
+			<tr>
+				<td>value: 3</td>
+			</tr>
+		</table>
+	>,color=black];
+	n4 -> n3[label="parent",fontsize=12];
+	n3 -> n4[label="left",fontsize=12];
+	n3 -> n2[label="parent",fontsize=12];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: one</td>
+			</tr>
+			<tr>
+				<td>value: 1</td>
+			</tr>
+		</table>
+	>,color=black];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: six</td>
+			</tr>
+			<tr>
+				<td>value: 4</td>
+			</tr>
+		</table>
+	>,color=red];
+	n6 -> n5[label="parent",fontsize=12];
+	n5 -> n6[label="right",fontsize=12];
+	n5 -> n3[label="parent",fontsize=12];
+	n3 -> n5[label="right",fontsize=12];
+	n2 -> n3[label="left",fontsize=12];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: two</td>
+			</tr>
+			<tr>
+				<td>value: 2</td>
+			</tr>
+		</table>
+	>,color=black];
+	n7 -> n2[label="parent",fontsize=12];
+	n2 -> n7[label="right",fontsize=12];
+	n1 -> n2[label="root",fontsize=12];
+}
+--
+
+== Красно-чёрное дерево: в чём фокус?
+
+
+* Инварианты КЧД:
+
+** Корень — чёрный.
+
+** `null`—«листья» в конце ветвей считаются чёрными.
+
+** Оба потомка каждого красного узла — чёрные.
+    
+** Любой простой путь от узла-предка до листового узла-потомка содержит одинаковое число чёрных узлов.
+
+* Следствие:
+
+** Путь от корня до самого дальнего листа (ЧКЧКЧ...) не более чем вдвое длиннее, чем до самого ближнего (ЧЧЧ...)
+
+== TreeMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>TreeMap</td>
+			</tr>
+			<tr>
+				<td>size: 1</td>
+			</tr>
+			<tr>
+				<td>modCount: 1</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>,color=black,style=filled,fillcolor=yellow];
+	n1 -> n2[label="root",fontsize=12];
+}
+--
+
+== TreeMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>TreeMap</td>
+			</tr>
+			<tr>
+				<td>size: 2</td>
+			</tr>
+			<tr>
+				<td>modCount: 2</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>,color=red,style=filled,fillcolor=yellow];
+	n3 -> n2[label="parent",fontsize=12];
+	n2 -> n3[label="right",fontsize=12];
+	n1 -> n2[label="root",fontsize=12];
+}
+
+--
+
+== TreeMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>TreeMap</td>
+			</tr>
+			<tr>
+				<td>size: 3</td>
+			</tr>
+			<tr>
+				<td>modCount: 3</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>,color=red];
+	n3 -> n2[label="parent",fontsize=12];
+	n2 -> n3[label="left",fontsize=12];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>,color=red,style=filled,fillcolor=yellow];
+	n4 -> n2[label="parent",fontsize=12];
+	n2 -> n4[label="right",fontsize=12];
+	n1 -> n2[label="root",fontsize=12];
+}
+
+--
+
+== TreeMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>TreeMap</td>
+			</tr>
+			<tr>
+				<td>size: 4</td>
+			</tr>
+			<tr>
+				<td>modCount: 4</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3 -> n2[label="parent",fontsize=12];
+	n2 -> n3[label="left",fontsize=12];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>,color=black];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>,color=red,style=filled,fillcolor=yellow];
+	n5 -> n4[label="parent",fontsize=12];
+	n4 -> n5[label="right",fontsize=12];
+	n4 -> n2[label="parent",fontsize=12];
+	n2 -> n4[label="right",fontsize=12];
+	n1 -> n2[label="root",fontsize=12];
+}
+--
+
+== TreeMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>TreeMap</td>
+			</tr>
+			<tr>
+				<td>size: 5</td>
+			</tr>
+			<tr>
+				<td>modCount: 5</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3 -> n2[label="parent",fontsize=12];
+	n2 -> n3[label="left",fontsize=12];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>,color=black];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>,color=red];
+	n5 -> n4[label="parent",fontsize=12];
+	n4 -> n5[label="left",fontsize=12];
+	n4 -> n2[label="parent",fontsize=12];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: E</td>
+			</tr>
+		</table>
+	>,color=red,style=filled,fillcolor=yellow];
+	n6 -> n4[label="parent",fontsize=12];
+	n4 -> n6[label="right",fontsize=12];
+	n2 -> n4[label="right",fontsize=12];
+	n1 -> n2[label="root",fontsize=12];
+}
+--
+
+== TreeMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>TreeMap</td>
+			</tr>
+			<tr>
+				<td>size: 6</td>
+			</tr>
+			<tr>
+				<td>modCount: 6</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3 -> n2[label="parent",fontsize=12];
+	n2 -> n3[label="left",fontsize=12];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>,color=red];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>,color=black];
+	n5 -> n4[label="parent",fontsize=12];
+	n4 -> n5[label="left",fontsize=12];
+	n4 -> n2[label="parent",fontsize=12];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: E</td>
+			</tr>
+		</table>
+	>,color=black];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: F</td>
+			</tr>
+		</table>
+	>,color=red,style=filled,fillcolor=yellow];
+	n7 -> n6[label="parent",fontsize=12];
+	n6 -> n7[label="right",fontsize=12];
+	n6 -> n4[label="parent",fontsize=12];
+	n4 -> n6[label="right",fontsize=12];
+	n2 -> n4[label="right",fontsize=12];
+	n1 -> n2[label="root",fontsize=12];
+}
+--
+
+== TreeMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>TreeMap</td>
+			</tr>
+			<tr>
+				<td>size: 7</td>
+			</tr>
+			<tr>
+				<td>modCount: 7</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3 -> n2[label="parent",fontsize=12];
+	n2 -> n3[label="left",fontsize=12];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>,color=red];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>,color=black];
+	n5 -> n4[label="parent",fontsize=12];
+	n4 -> n5[label="left",fontsize=12];
+	n4 -> n2[label="parent",fontsize=12];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: F</td>
+			</tr>
+		</table>
+	>,color=black];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: E</td>
+			</tr>
+		</table>
+	>,color=red];
+	n7 -> n6[label="parent",fontsize=12];
+	n6 -> n7[label="left",fontsize=12];
+	n6 -> n4[label="parent",fontsize=12];
+	n8[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: G</td>
+			</tr>
+		</table>
+	>,color=red,style=filled,fillcolor=yellow];
+	n8 -> n6[label="parent",fontsize=12];
+	n6 -> n8[label="right",fontsize=12];
+	n4 -> n6[label="right",fontsize=12];
+	n2 -> n4[label="right",fontsize=12];
+	n1 -> n2[label="root",fontsize=12];
+}
+--
+
+== TreeMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>TreeMap</td>
+			</tr>
+			<tr>
+				<td>size: 8</td>
+			</tr>
+			<tr>
+				<td>modCount: 8</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>,color=black];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>,color=red];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>,color=black];
+	n4 -> n3[label="parent",fontsize=12];
+	n3 -> n4[label="left",fontsize=12];
+	n3 -> n2[label="parent",fontsize=12];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>,color=black];
+	n5 -> n3[label="parent",fontsize=12];
+	n3 -> n5[label="right",fontsize=12];
+	n2 -> n3[label="left",fontsize=12];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: F</td>
+			</tr>
+		</table>
+	>,color=red];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: E</td>
+			</tr>
+		</table>
+	>,color=black];
+	n7 -> n6[label="parent",fontsize=12];
+	n6 -> n7[label="left",fontsize=12];
+	n6 -> n2[label="parent",fontsize=12];
+	n8[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: G</td>
+			</tr>
+		</table>
+	>,color=black];
+	n9[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Entry</td>
+			</tr>
+			<tr>
+				<td>key: H</td>
+			</tr>
+		</table>
+	>,color=red,style=filled,fillcolor=yellow];
+	n9 -> n8[label="parent",fontsize=12];
+	n8 -> n9[label="right",fontsize=12];
+	n8 -> n6[label="parent",fontsize=12];
+	n6 -> n8[label="right",fontsize=12];
+	n2 -> n6[label="right",fontsize=12];
+	n1 -> n2[label="root",fontsize=12];
+}
+--
+
+== ConcurrentSkipListMap
+[graphviz]
+--
+digraph G {
+    rankdir = LR;
+    node[shape=box,label=""];
+    I1->I2->I3->IF[label=right];
+    II1->II2->II3->II4->II5->II6->IIF[label=right];
+    N00->N01->N02->N03->N04->N05->N06->N07->N08->N09->N10->N11->NF[label=next];
+    I1->II1->N00[label="                   down"];
+    II2->N03[label="                   down"];
+    I2->II3->N04[label="                   down"];
+    II4->N06[label="                   down"];
+    I3->II5->N09[label="                   down"];
+    II6->N11[label="                   down"];
+    {rank=same;I1;II1;N00}
+    {rank=same;II2;N03}
+    {rank=same;I2;II3;N04}
+    {rank=same;II4;N06}
+    {rank=same;I3;II5;N09}
+    {rank=same;II6;N11}
+    IF[shape=oval,label="null"];
+    IIF[shape=oval,label="null"];
+    NF[shape=oval,label="null"];
+    N01[label="A"]; N02[label="B"]; N03[label="C"];
+    N04[label="D"]; N05[label="E"]; N06[label="F"];
+    N07[label="G"]; N08[label="H"]; N09[label="I"];
+    N10[label="J"]; N11[label="K"]; 
+}
+--
+
+В комментариях к коду CSLM:
+
+* две научные статьи
+* книга
+* три докторских диссертации
+
+== ConcurrentSkipListMap
+
+//A
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>ConcurrentSkipListMap</td>
+			</tr>
+			<tr>
+				<td>adder: 1</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Node</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n3 -> n4[label="next",fontsize=12];
+	n2 -> n3[label="node",fontsize=12,constraint=false,color=green];
+	n1 -> n2[label="head",fontsize=12];
+}
+
+--
+
+== ConcurrentSkipListMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>ConcurrentSkipListMap</td>
+			</tr>
+			<tr>
+				<td>adder: 2</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Node</td>
+			</tr>
+		</table>
+	>];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n4 -> n5[label="next",fontsize=12];
+	n3 -> n4[label="next",fontsize=12];
+	n2 -> n3[label="node",fontsize=12,constraint=false,color=green];
+	n1 -> n2[label="head",fontsize=12];
+}
+
+--
+
+== ConcurrentSkipListMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>ConcurrentSkipListMap</td>
+			</tr>
+			<tr>
+				<td>adder: 3</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n4 -> n5[label="node",fontsize=12,constraint=false,color=green];
+	n3 -> n4[label="right",fontsize=12];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Node</td>
+			</tr>
+		</table>
+	>];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>];
+	n8[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>];
+	n8 -> n5[label="next",fontsize=12];
+	n7 -> n8[label="next",fontsize=12];
+	n6 -> n7[label="next",fontsize=12];
+	n3 -> n6[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n3[label="down",fontsize=12,constraint=false];
+	n9[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n9 -> n4[label="down",fontsize=12,constraint=false];
+	n9 -> n5[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n9[label="right",fontsize=12];
+	n2 -> n6[label="node",fontsize=12,constraint=false,color=green];
+	n1 -> n2[label="head",fontsize=12];
+}
+
+--
+
+== ConcurrentSkipListMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>ConcurrentSkipListMap</td>
+			</tr>
+			<tr>
+				<td>adder: 4</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n5 -> n6[label="node",fontsize=12,constraint=false,color=green];
+	n4 -> n5[label="right",fontsize=12];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>];
+	n7 -> n6[label="next",fontsize=12];
+	n4 -> n7[label="node",fontsize=12,constraint=false,color=green];
+	n3 -> n4[label="right",fontsize=12];
+	n8[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Node</td>
+			</tr>
+		</table>
+	>];
+	n9[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>];
+	n10[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>];
+	n10 -> n7[label="next",fontsize=12];
+	n9 -> n10[label="next",fontsize=12];
+	n8 -> n9[label="next",fontsize=12];
+	n3 -> n8[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n3[label="down",fontsize=12,constraint=false];
+	n11[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n11 -> n4[label="down",fontsize=12,constraint=false];
+	n11 -> n7[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n11[label="right",fontsize=12];
+	n2 -> n8[label="node",fontsize=12,constraint=false,color=green];
+	n1 -> n2[label="head",fontsize=12];
+}
+
+--
+
+== ConcurrentSkipListMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>ConcurrentSkipListMap</td>
+			</tr>
+			<tr>
+				<td>adder: 5</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: E</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n6 -> n7[label="node",fontsize=12,constraint=false,color=green];
+	n5 -> n6[label="right",fontsize=12];
+	n8[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>];
+	n8 -> n7[label="next",fontsize=12];
+	n5 -> n8[label="node",fontsize=12,constraint=false,color=green];
+	n4 -> n5[label="right",fontsize=12];
+	n9[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>];
+	n9 -> n8[label="next",fontsize=12];
+	n4 -> n9[label="node",fontsize=12,constraint=false,color=green];
+	n3 -> n4[label="right",fontsize=12];
+	n10[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Node</td>
+			</tr>
+		</table>
+	>];
+	n11[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>];
+	n12[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>];
+	n12 -> n9[label="next",fontsize=12];
+	n11 -> n12[label="next",fontsize=12];
+	n10 -> n11[label="next",fontsize=12];
+	n3 -> n10[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n3[label="down",fontsize=12,constraint=false];
+	n13[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n13 -> n4[label="down",fontsize=12,constraint=false];
+	n13 -> n9[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n13[label="right",fontsize=12];
+	n2 -> n10[label="node",fontsize=12,constraint=false,color=green];
+	n1 -> n2[label="head",fontsize=12];
+}
+--
+
+== ConcurrentSkipListMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>ConcurrentSkipListMap</td>
+			</tr>
+			<tr>
+				<td>adder: 6</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n8[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: F</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n7 -> n8[label="node",fontsize=12,constraint=false,color=green];
+	n6 -> n7[label="right",fontsize=12];
+	n9[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: E</td>
+			</tr>
+		</table>
+	>];
+	n9 -> n8[label="next",fontsize=12];
+	n6 -> n9[label="node",fontsize=12,constraint=false,color=green];
+	n5 -> n6[label="right",fontsize=12];
+	n10[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>];
+	n10 -> n9[label="next",fontsize=12];
+	n5 -> n10[label="node",fontsize=12,constraint=false,color=green];
+	n4 -> n5[label="right",fontsize=12];
+	n11[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>];
+	n11 -> n10[label="next",fontsize=12];
+	n4 -> n11[label="node",fontsize=12,constraint=false,color=green];
+	n3 -> n4[label="right",fontsize=12];
+	n12[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Node</td>
+			</tr>
+		</table>
+	>];
+	n13[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>];
+	n14[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>];
+	n14 -> n11[label="next",fontsize=12];
+	n13 -> n14[label="next",fontsize=12];
+	n12 -> n13[label="next",fontsize=12];
+	n3 -> n12[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n3[label="down",fontsize=12,constraint=false];
+	n15[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n15 -> n4[label="down",fontsize=12,constraint=false];
+	n15 -> n11[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n15[label="right",fontsize=12];
+	n2 -> n12[label="node",fontsize=12,constraint=false,color=green];
+	n1 -> n2[label="head",fontsize=12];
+}
+
+--
+
+== ConcurrentSkipListMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>ConcurrentSkipListMap</td>
+			</tr>
+			<tr>
+				<td>adder: 7</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n8[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n9[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: G</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n8 -> n9[label="node",fontsize=12,constraint=false,color=green];
+	n7 -> n8[label="right",fontsize=12];
+	n10[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: F</td>
+			</tr>
+		</table>
+	>];
+	n10 -> n9[label="next",fontsize=12];
+	n7 -> n10[label="node",fontsize=12,constraint=false,color=green];
+	n6 -> n7[label="right",fontsize=12];
+	n11[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: E</td>
+			</tr>
+		</table>
+	>];
+	n11 -> n10[label="next",fontsize=12];
+	n6 -> n11[label="node",fontsize=12,constraint=false,color=green];
+	n5 -> n6[label="right",fontsize=12];
+	n12[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>];
+	n12 -> n11[label="next",fontsize=12];
+	n5 -> n12[label="node",fontsize=12,constraint=false,color=green];
+	n4 -> n5[label="right",fontsize=12];
+	n13[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>];
+	n13 -> n12[label="next",fontsize=12];
+	n4 -> n13[label="node",fontsize=12,constraint=false,color=green];
+	n3 -> n4[label="right",fontsize=12];
+	n14[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Node</td>
+			</tr>
+		</table>
+	>];
+	n15[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>];
+	n16[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>];
+	n16 -> n13[label="next",fontsize=12];
+	n15 -> n16[label="next",fontsize=12];
+	n14 -> n15[label="next",fontsize=12];
+	n3 -> n14[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n3[label="down",fontsize=12,constraint=false];
+	n17[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n17 -> n4[label="down",fontsize=12,constraint=false];
+	n18[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n18 -> n8[label="down",fontsize=12,constraint=false];
+	n18 -> n9[label="node",fontsize=12,constraint=false,color=green];
+	n17 -> n18[label="right",fontsize=12];
+	n17 -> n13[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n17[label="right",fontsize=12];
+	n2 -> n14[label="node",fontsize=12,constraint=false,color=green];
+	n1 -> n2[label="head",fontsize=12];
+}
+
+--
+
+== ConcurrentSkipListMap
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext]
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>ConcurrentSkipListMap</td>
+			</tr>
+			<tr>
+				<td>adder: 8</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n8[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n9[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: G</td>
+			</tr>
+		</table>
+	>];
+	n10[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: H</td>
+			</tr>
+		</table>
+	>,style=filled,fillcolor=yellow];
+	n9 -> n10[label="next",fontsize=12];
+	n8 -> n9[label="node",fontsize=12,constraint=false,color=green];
+	n7 -> n8[label="right",fontsize=12];
+	n11[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: F</td>
+			</tr>
+		</table>
+	>];
+	n11 -> n9[label="next",fontsize=12];
+	n7 -> n11[label="node",fontsize=12,constraint=false,color=green];
+	n6 -> n7[label="right",fontsize=12];
+	n12[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: E</td>
+			</tr>
+		</table>
+	>];
+	n12 -> n11[label="next",fontsize=12];
+	n6 -> n12[label="node",fontsize=12,constraint=false,color=green];
+	n5 -> n6[label="right",fontsize=12];
+	n13[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: D</td>
+			</tr>
+		</table>
+	>];
+	n13 -> n12[label="next",fontsize=12];
+	n5 -> n13[label="node",fontsize=12,constraint=false,color=green];
+	n4 -> n5[label="right",fontsize=12];
+	n14[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: C</td>
+			</tr>
+		</table>
+	>];
+	n14 -> n13[label="next",fontsize=12];
+	n4 -> n14[label="node",fontsize=12,constraint=false,color=green];
+	n3 -> n4[label="right",fontsize=12];
+	n15[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Node</td>
+			</tr>
+		</table>
+	>];
+	n16[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: A</td>
+			</tr>
+		</table>
+	>];
+	n17[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>key: B</td>
+			</tr>
+		</table>
+	>];
+	n17 -> n14[label="next",fontsize=12];
+	n16 -> n17[label="next",fontsize=12];
+	n15 -> n16[label="next",fontsize=12];
+	n3 -> n15[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n3[label="down",fontsize=12,constraint=false];
+	n18[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n18 -> n4[label="down",fontsize=12,constraint=false];
+	n19[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>Index</td>
+			</tr>
+		</table>
+	>];
+	n19 -> n8[label="down",fontsize=12,constraint=false];
+	n19 -> n9[label="node",fontsize=12,constraint=false,color=green];
+	n18 -> n19[label="right",fontsize=12];
+	n18 -> n14[label="node",fontsize=12,constraint=false,color=green];
+	n2 -> n18[label="right",fontsize=12];
+	n2 -> n15[label="node",fontsize=12,constraint=false,color=green];
+	n1 -> n2[label="head",fontsize=12];
+}
+
+--
+
