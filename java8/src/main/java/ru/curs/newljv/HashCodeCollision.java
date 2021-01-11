@@ -1,4 +1,4 @@
-package ru.curs.oldljv;
+package ru.curs.newljv;
 
 import java.util.*;
 import java.util.stream.Collectors;

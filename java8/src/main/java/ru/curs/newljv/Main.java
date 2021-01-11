@@ -1,4 +1,4 @@
-package ru.curs.oldljv;
+package ru.curs.newljv;
 
 import org.atpfivt.ljv.Direction;
 import org.atpfivt.ljv.LJV;
@@ -14,10 +14,13 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Main {
 
@@ -32,16 +35,50 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException, URISyntaxException {
+        //ll();
+        cld();
         //chm();
         //cslm();
         //tm();
-        //   hm1();
+        //hm1();
         //hm2(6);
         //hm2(11);
         //hm3(11);
         //lhm();
-        lhm2();
+        // lhm2();
+        //stream();
     }
+
+    private static void cld() throws IOException, URISyntaxException {
+        LJV ljv = new LJV()
+                .setDirection(Direction.LR)
+                .addFieldAttribute("tail", "constraint=false")
+                .addFieldAttribute("prev", "constraint=false")
+                .setTreatAsPrimitive(Integer.class);
+        Queue<Integer> d = new ConcurrentLinkedDeque<>();
+        d.add(1);
+        d.add(2);
+        d.add(3);
+        d.add(4);
+        visualize(ljv, d);
+
+    }
+
+    private static void ll() throws IOException, URISyntaxException {
+        LJV ljv = new LJV()
+                .setDirection(Direction.LR)
+                .addFieldAttribute("last", "constraint=false")
+                .addFieldAttribute("prev", "constraint=false")
+                .setTreatAsPrimitive(Integer.class);
+        Queue<Integer> d = new LinkedList<>();
+        d.add(1);
+        d.add(2);
+        d.add(3);
+        d.add(4);
+        visualize(ljv, d);
+
+    }
+
 
     private static void chm() throws IOException, URISyntaxException {
         LJV ljv = new LJV()
@@ -127,7 +164,6 @@ public class Main {
     }
 
 
-
     private static String redBlackForHM(Object o) {
         Set<Field> redFields = ReflectionUtils.getAllFields(o.getClass(),
                 f -> "red".equals(f.getName())
@@ -148,7 +184,7 @@ public class Main {
 
     static void hm3(int len) throws IOException, URISyntaxException {
         LJV ljv = new LJV()
-                .setIgnoreNullValuedFields(true)
+                // .setIgnoreNullValuedFields(true)
                 .setTreatAsPrimitive(Integer.class)
                 .setTreatAsPrimitive(String.class)
                 .addIgnoreField("value")
@@ -281,5 +317,27 @@ public class Main {
 
         q.add(1);
         visualize(ljv, q);
+    }
+
+    private static void stream() throws IOException, URISyntaxException {
+        LJV ljv = new LJV()
+                .setQualifyNestedClassNames(true)
+                .setIgnoreNullValuedFields(true)
+                .addFieldAttribute("sourceSpliterator", "constraint=false");
+        Stream<Integer> o =
+                List.of(1, 2, 3)
+                        .stream()
+                        .map(x -> x * x)
+                        .filter(x -> x % 2 == 0);
+        //DOT script
+        String dot = ljv.drawGraph(o);
+
+        //use GraphViz online
+        String encoded = URLEncoder.encode(dot, "UTF8")
+                .replaceAll("\\+", "%20");
+        Desktop.getDesktop().browse(
+                new URI("https://dreampuf.github.io/GraphvizOnline/#"
+                        + encoded));
+
     }
 }

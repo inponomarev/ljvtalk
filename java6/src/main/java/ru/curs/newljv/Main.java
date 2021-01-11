@@ -1,4 +1,4 @@
-package ru.curs.oldljv;
+package ru.curs.newljv;
 
 import java.awt.*;
 import java.io.IOException;
@@ -7,7 +7,6 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

@@ -949,9 +949,11 @@ digraph Java {
 
 [source,java]
 --
-LJV ljv = new LJV()
-        .setTreatAsPrimitive(Integer.class)
-        .setDirection(Direction.LR);
+LJV ljv = new LJV().setDirection(Direction.LR)
+    .addFieldAttribute("last", "constraint=false")
+    .addFieldAttribute("prev", "constraint=false")
+    .setTreatAsPrimitive(Integer.class);
+
 List<Integer> list = new LinkedList<>();
 list.add(1); list.add(2); list.add(3); list.add(4);
 visualize(ljv, list);
@@ -970,10 +972,10 @@ digraph Java {
 				<td rowspan='3'>LinkedList</td>
 			</tr>
 			<tr>
-				<td>modCount: 4</td>
+				<td>size: 4</td>
 			</tr>
 			<tr>
-				<td>size: 4</td>
+				<td>modCount: 4</td>
 			</tr>
 		</table>
 	>];
@@ -1000,7 +1002,7 @@ digraph Java {
 			</tr>
 		</table>
 	>];
-	n3 -> n2[label="prev",fontsize=12];
+	n3 -> n2[label="prev",fontsize=12,constraint=false];
 	n4[label=<
 		<table border='0' cellborder='1' cellspacing='0'>
 			<tr>
@@ -1011,7 +1013,7 @@ digraph Java {
 			</tr>
 		</table>
 	>];
-	n4 -> n3[label="prev",fontsize=12];
+	n4 -> n3[label="prev",fontsize=12,constraint=false];
 	n5[label=<
 		<table border='0' cellborder='1' cellspacing='0'>
 			<tr>
@@ -1025,12 +1027,12 @@ digraph Java {
 			</tr>
 		</table>
 	>];
-	n5 -> n4[label="prev",fontsize=12];
+	n5 -> n4[label="prev",fontsize=12,constraint=false];
 	n4 -> n5[label="next",fontsize=12];
 	n3 -> n4[label="next",fontsize=12];
 	n2 -> n3[label="next",fontsize=12];
 	n1 -> n2[label="first",fontsize=12];
-	n1 -> n5[label="last",fontsize=12];
+	n1 -> n5[label="last",fontsize=12,constraint=false];
 }
 --
 
@@ -1535,10 +1537,172 @@ digraph Java {
 
 --
 
+== Concurrent Lock-free Queue/Deque?
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext];
+	graph [ dpi = 180 ];
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>ConcurrentLinkedQueue</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>Node</td>
+			</tr>
+			<tr>
+				<td>item: 4</td>
+			</tr>
+			<tr>
+				<td>next: null</td>
+			</tr>
+		</table>
+	>];
+	n1 -> n2[label="tail",fontsize=12,constraint="false"];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>item: null</td>
+			</tr>
+		</table>
+	>];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>item: 1</td>
+			</tr>
+		</table>
+	>];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>item: 2</td>
+			</tr>
+		</table>
+	>];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>item: 3</td>
+			</tr>
+		</table>
+	>];
+	n6 -> n2[label="next",fontsize=12];
+	n5 -> n6[label="next",fontsize=12];
+	n4 -> n5[label="next",fontsize=12];
+	n3 -> n4[label="next",fontsize=12];
+	n1 -> n3[label="head",fontsize=12];
+}
+
+--
+
+[graphviz]
+--
+digraph Java {
+	rankdir="LR";
+	node[shape=plaintext];
+	graph [ dpi = 180 ];
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>ConcurrentLinkedDeque</td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>Node</td>
+			</tr>
+			<tr>
+				<td>item: 4</td>
+			</tr>
+			<tr>
+				<td>next: null</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>item: 3</td>
+			</tr>
+		</table>
+	>];
+	n3 -> n2[label="next",fontsize=12];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>item: 2</td>
+			</tr>
+		</table>
+	>];
+	n4 -> n3[label="next",fontsize=12];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='2'>Node</td>
+			</tr>
+			<tr>
+				<td>item: 1</td>
+			</tr>
+		</table>
+	>];
+	n5 -> n4[label="next",fontsize=12];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td rowspan='3'>Node</td>
+			</tr>
+			<tr>
+				<td>item: null</td>
+			</tr>
+			<tr>
+				<td>prev: null</td>
+			</tr>
+		</table>
+	>];
+	n6 -> n5[label="next",fontsize=12];
+	n5 -> n6[label="prev",fontsize=12,constraint=false];
+	n4 -> n5[label="prev",fontsize=12,constraint=false];
+	n3 -> n4[label="prev",fontsize=12,constraint=false];
+	n2 -> n3[label="prev",fontsize=12,constraint=false];
+	n1 -> n2[label="tail",fontsize=12,constraint=false];
+	n1 -> n6[label="head",fontsize=12];
+}
+
+--
+
 == Промежуточные выводы
 
 * `java.util.LinkedList` не нужен, используем `ArrayList` / `ArrayDeque` / `PriorityQueue`.
 * На одних лишь массивах можно построить много быстрого и полезного!
+* Если нужна потокобезопасность и неблокирующее поведение, идея связного списка снова начинает работать в `ConcurrentLinkedQueue` / `ConcurrentLinkedDeque`.
 
 == Наш план
 
