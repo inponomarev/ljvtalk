@@ -36,7 +36,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException, URISyntaxException {
         //ll();
-        cld();
+        //cld();
         //chm();
         //cslm();
         //tm();
@@ -47,6 +47,22 @@ public class Main {
         //lhm();
         // lhm2();
         //stream();
+        strings();
+    }
+
+    private static void strings() throws IOException, URISyntaxException {
+        LJV ljv = new LJV().addIgnoreField("hash")
+                .addIgnoreField("coder")
+                .addIgnoreField("hashIsZero");
+        String x = "Hello";
+        String[] s = new String[]{x,
+                new String(x),
+                new String(x.toCharArray()),
+                x + "",
+                "" + x,
+                x.concat(""),
+                "".concat(x)};
+        visualize(ljv, s);
     }
 
     private static void cld() throws IOException, URISyntaxException {

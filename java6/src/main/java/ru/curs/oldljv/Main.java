@@ -1,4 +1,4 @@
-package ru.curs.newljv;
+package ru.curs.oldljv;
 
 import java.awt.*;
 import java.io.IOException;

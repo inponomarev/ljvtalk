@@ -603,7 +603,8 @@ n1389133897[shape=record, label="97|98|99"];
 == Создание строк
 
 [source,java]
-LJV ljv = new LJV().addIgnoreField("hash").addIgnoreField("coder");
+LJV ljv = new LJV().addIgnoreField("hash")
+    .addIgnoreField("coder").addIgnoreField("hashIsZero");
 String x = "Hello";
 new String[]{x,
              new String(x),
@@ -613,8 +614,7 @@ new String[]{x,
              x.concat(""),
              "".concat(x)}
              
-== Создание строк
-
+== Создание строк (Java 15-)
 
 [graphviz]
 --
@@ -756,6 +756,118 @@ digraph Java {
     /*4*/   "" + x,
     /*5*/   x.concat(""),   //переиспользуется весь x
     /*6*/   "".concat(x)
+
+== Создание строк (Java 16+)
+
+[graphviz]
+--
+digraph Java {
+	rankdir="TB";
+	node[shape=plaintext];
+	graph [ dpi = 120 ];
+	n1[label=<
+		<table border='0' cellborder='1' cellspacing='0' cellpadding='9'>
+			<tr>
+				<td port="f0"></td>
+				<td port="f1"></td>
+				<td port="f2"></td>
+				<td port="f3"></td>
+				<td port="f4"></td>
+				<td port="f5"></td>
+				<td port="f6"></td>
+			</tr>
+		</table>
+	>];
+	n2[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>String</td>
+			</tr>
+		</table>
+	>];
+	n3[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>72</td>
+				<td>101</td>
+				<td>108</td>
+				<td>108</td>
+				<td>111</td>
+			</tr>
+		</table>
+	>];
+	n2 -> n3[label="value",fontsize=12];
+	n1:f0 -> n2[label="0",fontsize=12];
+	n4[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>String</td>
+			</tr>
+		</table>
+	>];
+	n4 -> n3[label="value",fontsize=12];
+	n1:f1 -> n4[label="1",fontsize=12];
+	n5[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>String</td>
+			</tr>
+		</table>
+	>];
+	n6[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>72</td>
+				<td>101</td>
+				<td>108</td>
+				<td>108</td>
+				<td>111</td>
+			</tr>
+		</table>
+	>];
+	n5 -> n6[label="value",fontsize=12];
+	n1:f2 -> n5[label="2",fontsize=12];
+	n7[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>String</td>
+			</tr>
+		</table>
+	>];
+	n7 -> n3[label="value",fontsize=12];
+	n1:f3 -> n7[label="3",fontsize=12];
+	n8[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>String</td>
+			</tr>
+		</table>
+	>];
+	n8 -> n3[label="value",fontsize=12];
+	n1:f4 -> n8[label="4",fontsize=12];
+	n1:f5 -> n2[label="5",fontsize=12];
+	n9[label=<
+		<table border='0' cellborder='1' cellspacing='0'>
+			<tr>
+				<td>String</td>
+			</tr>
+		</table>
+	>];
+	n9 -> n3[label="value",fontsize=12];
+	n1:f6 -> n9[label="6",fontsize=12];
+}
+
+--
+
+[source,java]
+    /*0*/   x,
+    /*1*/   new String(x),
+    /*2*/   new String(x.toCharArray()),
+    /*3*/   x + "",
+    /*4*/   "" + x,
+    /*5*/   x.concat(""),   //переиспользуется весь x
+    /*6*/   "".concat(x)
+
 
 == Интернирование строк
 
@@ -934,9 +1046,11 @@ digraph Java {
 * Обновляйте Java, строки всё лучше и лучше!
 * Помните о кэшировании boxed primitives
 * При наличии показаний со стороны перформанс-анализа:
-** Дедупликация и иные методы уменьшения количества строк
-** `-XX:AutoBoxCacheMax`
-** https://github.com/vigna/fastutil[fastutil] (или ждём Valhalla)
+** Дедупликация строк (но не intern())
+** https://github.com/vigna/fastutil[fastutil] 
+** https://github.com/eclipse/eclipse-collections[Eclipse collections] primitive collections
+** ...
+** ...ну или ждём Valhalla (generic specialization)
 
 == Наш план
 

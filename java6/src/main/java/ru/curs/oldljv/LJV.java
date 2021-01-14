@@ -1,4 +1,4 @@
-package ru.curs.newljv;
+package ru.curs.oldljv;
 
 //- LJV.java --- Generate a graph of an object, using Graphviz
 
