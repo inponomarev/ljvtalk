@@ -55,7 +55,7 @@ image::presentationascode.png[]
 == GraphViz (Graph Visualization Software)
 
 * Initial release: before 1991
-* Stable release: 2.42.1, July 2019
+* Latest release: 2.46.1, February 2021
 * DOT language & visualization software
 
 == GraphViz (Graph Visualization Software)
@@ -105,6 +105,11 @@ digraph G{
 * Улучшен API
 * Обновлён GraphViz
 * GitHub, Maven, CI, тесты
+
+== https://github.com/atp-mipt/ljv
+
+image::githubljv.png[]
+
 
 == Шаг 1: создаём и конфигурируем LJV
 
@@ -329,6 +334,13 @@ digraph Java {
 * Очереди
 * `Map` и `ConcurrentMap`
 * `NavigableMap` и `ConcurrentNavigableMap`
+
+== Строка
+
+[source,java]
+--
+ new LJV().drawGraph("Hello");
+--
 
 == Эволюция String
 
@@ -937,6 +949,13 @@ digraph Java {
 --
 |===
 
+== Промежуточные выводы
+
+* Переходите на новые версии Java, строки всё лучше и лучше!
+
+* При наличии показаний со стороны перформанс-анализа делайте дедупликацию строк (но не через `intern()`).
+
+
 
 == Что посмотреть по теме
 
@@ -949,7 +968,7 @@ digraph Java {
 ** https://jugspeakers.online/ru/talk/2239.html[Ах, эти строки (JPoint 2020, 29.06.2020)]
 
 
-== Кэширование boxed primitives
+== Дедупликация (кэширование) boxed primitives
 
 [source,java]
 new Integer[]{
@@ -961,7 +980,7 @@ new Integer[]{
     -4242
 }
 
-== Кэширование boxed primitives
+== Дедупликация (кэширование) boxed primitives
 
     
 [graphviz]
@@ -1033,20 +1052,19 @@ digraph Java {
 
 [source,java]
 /*0*/ 42,
-/*1*/ 42, // кэшируется диапазон -128 .. 127 
+/*1*/ 42, // дедуплицируется диапазон -128 .. 127 
           // или -128 .. -XX:AutoBoxCacheMax
-/*2*/ Integer.valueOf(42), //кэшируется
-/*3*/ new Integer(42),     //НЕ кэшируется, deprecated since Java9
+/*2*/ Integer.valueOf(42), //дедуплицируется
+/*3*/ new Integer(42),   //НЕ дедуплицируется, deprecated since Java9
 /*4*/ -4242,               
-/*5*/ -4242                //не кэшируется (вне диапазона)
+/*5*/ -4242              //не дедуплицируется (вне диапазона)
 
 
 == Промежуточные выводы
 
-* Обновляйте Java, строки всё лучше и лучше!
-* Помните о кэшировании boxed primitives
-* При наличии показаний со стороны перформанс-анализа:
-** Дедупликация строк (но не intern())
+
+* Помните о дедупликации boxed primitives
+* При наличии показаний со стороны перформанс-анализа используйте библиотеки:
 ** https://github.com/vigna/fastutil[fastutil] 
 ** https://github.com/eclipse/eclipse-collections[Eclipse collections] primitive collections
 ** ...
@@ -1653,6 +1671,7 @@ digraph Java {
 
 == Concurrent Lock-free Queue/Deque?
 
+[.fragment]
 [graphviz]
 --
 digraph Java {
@@ -1729,6 +1748,7 @@ digraph Java {
 
 --
 
+[.fragment]
 [graphviz]
 --
 digraph Java {
@@ -1815,7 +1835,7 @@ digraph Java {
 == Промежуточные выводы
 
 * `java.util.LinkedList` не нужен, используем `ArrayList` / `ArrayDeque` / `PriorityQueue`.
-* На одних лишь массивах можно построить много быстрого и полезного!
+* Массив -- очень мощная основа для построения эффективных структур данных!
 * Если нужна потокобезопасность и неблокирующее поведение, идея связного списка снова начинает работать в `ConcurrentLinkedQueue` / `ConcurrentLinkedDeque`.
 
 == Наш план
