@@ -1,5 +1,5 @@
-= LJV: Чему нас может научить визуализация структур данных в Java
-Иван Пономарев
+= Inside Out Java: Exploring Data Structures with JOL Visualization
+Ivan Ponomarev
 :revealjs_theme: black
 :revealjs_customtheme: white_course.css
 :revealjs_slideNumber: true
@@ -26,34 +26,33 @@ include::_doc_general_attributes.adoc[]
 :!figure-caption:
 
 [%notitle]
-== Кто я такой
+== Who I Am
 
 [cols="20a,80a"]
 |===
 |image::ivan.jpg[]
 |
-Иван Пономарев
+Ivan Ponomarev
 
-* Техлид в компании КУРС
-* Преподаю Java в МФТИ
+* Staff Software Engineer @ Synthesized
+* Lecturer at universities
 |===
 
-== Что значит «сделать лекционный курс»?
+== What does it take to make a lecture course?
 
-* 14 недель подряд каждую неделю готовить доклад на 1,5 часа
-* На доске рисовать неохота (а теперь ещё и нельзя)
-* Хочется делать https://habr.com/ru/post/456032/[слайды как код]
-* *Можно ли, чтобы слайды рисовали себя сами?*
+* Prepare a 1.5-hour lecture every week for 14 consecutive weeks
+* Don't feel like drawing on the board
+* Want to make https://ponomarev.uk/blog/presentation.html[slides as code]
+* *Is it possible for the slides to draw themselves?*
 
-== https://habr.com/ru/post/456032/
+== Slides as Code
 
-image::presentationascode.png[]
-
+https://ponomarev.uk/blog/presentation.html
 
 == GraphViz (Graph Visualization Software)
 
 * Initial release: before 1991
-* Latest release: 2.46.1, February 2021
+* Latest release: 11.0.0, May 2024
 * DOT language & visualization software
 
 == GraphViz (Graph Visualization Software)
@@ -95,21 +94,21 @@ digraph G{
 * Java Reflection API + GraphViz.
 * *John Hamer* https://www.cs.auckland.ac.nz/~j-hamer/ACE04-paper.pdf[“Visualising Java Data Structures as Graphs”] (ACE 2004)
 * https://www.cs.auckland.ac.nz/~j-hamer/LJV.html
-* GNU GPL, файл `LJV.java`.
+* GNU GPL, file `LJV.java`.
 
-== Lightweight Java Visualizer: второе рождение
+== Lightweight Java Visualizer reborn
 
-* Нурас Ногаев, Илья Селиванов (МФТИ)
-* Улучшен API
-* Обновлён GraphViz
-* GitHub, Maven, CI, тесты
+* Nuras Nogaev, Ilya Selivanov (MIPT)
+* Improved API
+* Updated GraphViz
+* GitHub, Maven, CI, tests
 
 == https://github.com/atp-mipt/ljv
 
 image::githubljv.png[]
 
 
-== Шаг 1: создаём и конфигурируем LJV
+== Step 1: Creating and Configuring LJV
 
 [source,java]
 --
@@ -119,7 +118,7 @@ LJV ljv = new LJV()
     .addFieldAttribute("sourceSpliterator", "constraint=false");
 --
 
-== Шаг 2: создаём изучаемый объект
+== Step 2: Creating the Object of Study
 
 [source,java]
 --
@@ -130,7 +129,7 @@ Stream<Integer> o =
     .filter(x -> x % 2 == 0);
 --
 
-== Шаг 3: визуализируем
+== Step 3: Visualize
 [source,java]
 --
 //DOT script
@@ -146,7 +145,7 @@ Desktop.getDesktop().browse(
 --
 
 
-== Шаг 4: смотрим, что же у нас получилось
+== Step 4: Examine the Results
 
 [graphviz]
 --
@@ -326,21 +325,21 @@ digraph Java {
 
 --
 
-== Наш план
+== Our Plan
 
-* *Строки и обёртки примитивов*
-* Очереди
-* `Map` и `ConcurrentMap`
-* `NavigableMap` и `ConcurrentNavigableMap`
+* *Strings and Primitive Wrappers*
+* Queues
+* `Map` and `ConcurrentMap`
+* `NavigableMap` and `ConcurrentNavigableMap`
 
-== Строка
+== String
 
 [source,java]
 --
  new LJV().drawGraph("Hello");
 --
 
-== Эволюция String
+== Evolution of String
 
 [cols="^25a,^25a,^25a,^25a"]
 |===
@@ -610,7 +609,7 @@ n1389133897[shape=record, label="97|98|99"];
 
 --
 
-== Создание строк
+== Creation of Strings
 
 [source,java]
 LJV ljv = new LJV().addIgnoreField("hash")
@@ -624,7 +623,7 @@ new String[]{x,
              x.concat(""),
              "".concat(x)}
              
-== Создание строк (Java 15-)
+== Creation of Strings (Java 15-)
 
 [graphviz]
 --
@@ -767,7 +766,7 @@ digraph Java {
     /*5*/   x.concat(""),   //переиспользуется весь x
     /*6*/   "".concat(x)
 
-== Создание строк (Java 16+)
+== Creation of Strings (Java 16+)
 
 [graphviz]
 --
@@ -879,7 +878,7 @@ digraph Java {
     /*6*/   "".concat(x)
 
 
-== Интернирование строк
+== String interning
 
 [cols="50a,50a"]
 |===
@@ -947,26 +946,27 @@ digraph Java {
 --
 |===
 
-== Промежуточные выводы
+== Interim Conclusions
 
-* Переходите на новые версии Java, строки всё лучше и лучше!
+* Switch to newer versions of Java, strings are getting better and better!
 
-* При наличии показаний со стороны перформанс-анализа делайте дедупликацию строк (но не через `intern()`).
+* When performance analysis suggests, perform string deduplication (but not through `intern()`).
 
 
+== Further Viewing
 
-== Что посмотреть по теме
+* Alexey Shipilev
+** https://www.youtube.com/watch?v=YgGAUGC9ksk[ java.lang.String Catechism]
+** https://www.youtube.com/watch?v=wIyeOaitmWM[The Lord Of The Strings]
 
-* Алексей Шипилёв
-** https://jugspeakers.online/ru/talk/1572.html[Катехизис java.lang.String (JPoint 2015, 20.04.2015)]
-** https://jugspeakers.online/ru/talk/1648.html[The Lord of the Strings: Two Scours (JBreak 2016, 19.03.2016)]
-* Тагир Валеев
+////
+* Tagir Valeev
 ** https://jugspeakers.online/ru/talk/2254.html[Ещё немного маленьких оптимизаций (JPoint 2020, 29.06.2020)]
-* Сергей Цыпанов
+* Sergey Tsipanov
 ** https://jugspeakers.online/ru/talk/2239.html[Ах, эти строки (JPoint 2020, 29.06.2020)]
+////
 
-
-== Дедупликация (кэширование) boxed primitives
+== Deduplication (caching) of boxed primitives
 
 [source,java]
 new Integer[]{
@@ -978,9 +978,8 @@ new Integer[]{
     -4242
 }
 
-== Дедупликация (кэширование) boxed primitives
+== Deduplication (caching) of boxed primitives
 
-    
 [graphviz]
 --
 digraph Java {
@@ -1050,30 +1049,29 @@ digraph Java {
 
 [source,java]
 /*0*/ 42,
-/*1*/ 42, // дедуплицируется диапазон -128 .. 127 
-          // или -128 .. -XX:AutoBoxCacheMax
-/*2*/ Integer.valueOf(42), //дедуплицируется
-/*3*/ new Integer(42),   //НЕ дедуплицируется, deprecated since Java9
+/*1*/ 42, // deduplicated range -128 .. 127
+          // or -128 .. -XX:AutoBoxCacheMax
+/*2*/ Integer.valueOf(42), //deduplicated
+/*3*/ new Integer(42),   //NOT deduplicated, deprecated since Java9
 /*4*/ -4242,               
-/*5*/ -4242              //не дедуплицируется (вне диапазона)
+/*5*/ -4242              //not deduplicated (outside of the range)
 
 
-== Промежуточные выводы
+== Interim Conclusions
 
-
-* Помните о дедупликации boxed primitives
-* При наличии показаний со стороны перформанс-анализа используйте библиотеки:
+* Remember about deduplication of boxed primitives.
+* If performance analysis indicates, use libraries:
 ** https://github.com/vigna/fastutil[fastutil] 
 ** https://github.com/eclipse/eclipse-collections[Eclipse collections] primitive collections
 ** ...
-** ...ну или ждём Valhalla (generic specialization)
+** ...or wait for Valhalla (generic specialization).
 
-== Наш план
+== Our Plan
 
-* [line-through]#Строки и обёртки примитивов#
-* *Очереди*
-* `Map` и `ConcurrentMap`
-* `NavigableMap` и `ConcurrentNavigableMap`
+* [line-through]#Strings and Primitive Wrappers#
+* *Queues*
+* `Map` and `ConcurrentMap`
+* `NavigableMap` and `ConcurrentNavigableMap`
 
 == `LinkedList` (implements `List`, `Deque`)
 
@@ -1166,7 +1164,7 @@ digraph Java {
 }
 --
 
-== Нужен ли `LinkedList` в Java?
+== Do we need `LinkedList` in Java?
 
 image::whouselinkedlist.png[]
 
@@ -1412,12 +1410,12 @@ digraph Java {
 }
 --
 
-== `PriorityQueue`: в чём фокус?
+== `PriorityQueue`: what's the trick?
 
-* Binary min-heap, инварианты:
+* Binary min-heap, invariants:
 ** stem:[q[n\] \leq q[2n + 1\]]
 ** stem:[q[n\] \leq q[2n+2\]]
-* Следствие:
+* Consequence:
 ** stem:[q[0\] = \min(q)]
 
 [graphviz]
@@ -1465,7 +1463,7 @@ digraph Java {
 }
 --
 
-== Удаление элемента
+== Deletion
 
 [source,java]
 q.poll();
@@ -1515,7 +1513,7 @@ digraph Java {
 }
 --
 
-== Удаление элемента
+== Deletion
 
 [source,java]
 q.poll();
@@ -1566,7 +1564,7 @@ digraph Java {
 
 --
 
-== Удаление элемента
+== Deletion
 
 [source,java]
 q.poll();
@@ -1616,7 +1614,7 @@ digraph Java {
 }
 --
 
-== Добавление элемента
+== Adding an element
 
 [source,java]
 q.add(1);
@@ -1830,21 +1828,20 @@ digraph Java {
 
 --
 
-== Промежуточные выводы
+== Interim Conclusions
 
-* `java.util.LinkedList` не нужен, используем `ArrayList` / `ArrayDeque` / `PriorityQueue`.
-* Массив -- очень мощная основа для построения эффективных структур данных!
-* Если нужна потокобезопасность и неблокирующее поведение, идея связного списка снова начинает работать в `ConcurrentLinkedQueue` / `ConcurrentLinkedDeque`.
+* `java.util.LinkedList` is usless, use `ArrayList` / `ArrayDeque` / `PriorityQueue` instead.
+* Arrays are a very powerful foundation for building efficient data structures!
+* If thread safety and non-blocking behavior are needed, the idea of a linked list starts working again in `ConcurrentLinkedQueue` / `ConcurrentLinkedDeque`.
 
-== Наш план
+== Our Plan
 
-* [line-through]#Строки и обёртки примитивов#
-* [line-through]#Очереди#
-* *`Map` и `ConcurrentMap`*
-* `NavigableMap` и `ConcurrentNavigableMap`
+* [line-through]#Strings and Primitive Wrappers#
+* [line-through]#Queues#
+* *`Map` and `ConcurrentMap`*
+* `NavigableMap` and `ConcurrentNavigableMap`
 
-
-== Его Величество `HashMap`
+== His Magesty `HashMap`
 
 [source,java]
 --
@@ -1859,7 +1856,7 @@ map.put("three", 3); map.put("four", 4);
 visualize(ljv, map);
 --
 
-== Его Величество `HashMap`
+== His Magesty `HashMap`
 
 [graphviz]
 --
@@ -1980,7 +1977,7 @@ digraph Java {
 }
 --
 
-== Готовим визуализацию
+== Prepare visualization
 
 [source,java]
 --
@@ -1996,7 +1993,7 @@ LJV ljv = new LJV()
 //redBlackForHM: red ? "color=red" : "color=black";
 --
 
-== Готовим коллизии
+== Prepare collisions
 
 [source,java]
 --
@@ -2010,7 +2007,7 @@ for (int i = 0; i < len; i++) {
 visualize(ljv, map);
 --
 
-== 6 коллизий
+== 6 collisions
 
 
 
@@ -2149,7 +2146,7 @@ digraph Java {
 
 --
 
-== 11 коллизий, Java 8+: одеревенение 
+== 11 collisions, Java 8+: treeification
 
 [graphviz]
 --
@@ -2448,7 +2445,7 @@ static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
 [.fragment]
 `LinkedHashMap.Entry`?!
 
-== LinkedHashMap: почти готовый LRU кэш
+== LinkedHashMap: nearly ready LRU cache
 
 [graphviz]
 --
@@ -2580,7 +2577,7 @@ digraph Java {
 }
 --
 
-== LinkedHashMap: режим access order
+== LinkedHashMap: access order mode
 
 [source,java]
 --
@@ -2712,7 +2709,7 @@ digraph Java {
 }
 --
 
-== LinkedHashMap: режим access order
+== LinkedHashMap: access order mode
 
 [source,java]
 --
@@ -2840,7 +2837,7 @@ digraph Java {
 }
 --
 
-== MapN: иммутабельная хэшмапа
+== MapN: the immutable hash map
 
 [source,java]
 --
@@ -2980,7 +2977,7 @@ digraph Java {
 }
 --
 
-== Коллизии в MapN: linear probing
+== Collisions in MapN: linear probing
 
 [source,java]
  Map.of("aaa", 1, "abB", 2, "bBa", 3)
@@ -3355,22 +3352,22 @@ digraph Java {
 }
 --
 
-== Промежуточные выводы
+== Interim Conclusions
 
-* Существенный апгрейд `HashMap` и `ConcurrentHashMap` -- в Java 8.
-* В Java 9 -- иммутабельные хэшмапы с открытой адресацией.
-* Не забываем про `LinkedHashMap`:
-** два режима работы
+* Significant upgrade of HashMap and ConcurrentHashMap in Java 8.
+* In Java 9 there are immutable hashmaps with open addressing.
+* Don't forget about `LinkedHashMap`:
+** two modes of operation
 ** `protected boolean removeEldestEntry(...)`
 
-== Наш план
+== Our Plan
 
-* [line-through]#Строки и обёртки примитивов#
-* [line-through]#Очереди#
-* [line-through]#`Map` и `ConcurrentMap`#
-* *`NavigableMap` и `ConcurrentNavigableMap`*
+* [line-through]#Strings and Primitive Wrappers#
+* [line-through]#Queues#
+* [line-through]#`Map` and `ConcurrentMap`#
+* *`NavigableMap` and `ConcurrentNavigableMap`*
 
-== TreeMap: красно-чёрное дерево
+== TreeMap: red-black tree
 
 [source,java]
 --
@@ -3390,7 +3387,7 @@ map.put("five", 3);       map.put("six", 4);
 visualize(ljv, map);
 --
 
-== TreeMap: красно-чёрное дерево
+== TreeMap: red-black tree
 
 [graphviz]
 --
@@ -3503,22 +3500,22 @@ digraph Java {
 }
 --
 
-== Красно-чёрное дерево: в чём фокус?
+== Red-black tree: What's the trick?
 
 
-* Инварианты КЧД:
+* Red-black tree invariants:
 
-** Корень — чёрный.
+** The root is black.
 
-** `null`—«листья» в конце ветвей считаются чёрными.
+** the "`null` leaves" at the ends of branches are considered black.
 
-** Оба потомка каждого красного узла — чёрные.
+** Both children of every red node are black.
     
-** Любой простой путь от узла-предка до листового узла-потомка содержит одинаковое число чёрных узлов.
+** Every simple path from a parent node to a descendant leaf node has the same number of black nodes.
 
-* Следствие:
+* Consequence:
 
-** Путь от корня до самого дальнего листа (ЧКЧКЧ...) не более чем вдвое длиннее, чем до самого ближнего (ЧЧЧ...)
+** The path from the root to the farthest leaf (BRBRBR...) is at most twice as long as to the nearest leaf (BBB...).
 
 == TreeMap
 
@@ -4138,15 +4135,15 @@ digraph Java {
 }
 --
 
-== ConcurrentNavigableMap: то же самое, но thread-safe?
+== ConcurrentNavigableMap: the same thing, but thread-safe?
 
 * `ConcurrentSkipListMap`
-* В комментариях к исходному коду CSLM обнаруживаются:
-** две научные статьи
-** книга
-** три докторских диссертации
+* In the comments to the source code can be found:
+** two scientific papers
+** book
+** three PhD theses
 
-== ConcurrentSkipListMap: идея
+== ConcurrentSkipListMap: the idea
 [graphviz]
 --
 digraph G {
@@ -5186,14 +5183,14 @@ digraph Java {
 
 --
 
-== Промежуточные выводы
+== Interim Conclusions
 
-* Продвинутые алгоритмы творят чудеса.
-* Мы вступили на почву, где простой визуализации недостаточно.
+* Advanced algorithms work wonders.
+* We have reached a point where simple visualization is not enough.
 
-== На этом всё!
+== That's all!
 
-* Смотрите проект https://github.com/atp-mipt/ljv
-* Экспериментируйте
-* Присылайте свои идеи
-* Исходники примеров и презентации: https://github.com/inponomarev/ljvtalk
+* Check out the project at https://github.com/openjdk/jol
+* Experiment
+* Send your ideas
+* Source code of examples and presentations:  https://github.com/inponomarev/ljvtalk
